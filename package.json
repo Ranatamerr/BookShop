@@ -4,7 +4,7 @@
   "description": "BookShop application",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "ts-node-dev src/server.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -12,14 +12,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.30.0",
-    "pg": "^8.11.3"
+    "@hono/node-server": "^1.19.9",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^16.6.1",
+    "drizzle-orm": "^0.30.10",
+    "hono": "^4.11.7",
+    "ioredis": "^5.9.2",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.17.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^20.19.30",
     "@types/pg": "^8.10.9",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.9.3"
   }
