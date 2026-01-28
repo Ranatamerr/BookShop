@@ -11,5 +11,5 @@ serve({
   fetch: app.fetch,
   port: PORT,
 }, (info: any) => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`Server running on http://localhost:${PORT}`)
 })
