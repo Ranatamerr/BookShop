@@ -1,5 +1,6 @@
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import parser from '@typescript-eslint/parser'
+import prettier from 'eslint-config-prettier'
 
 export default [
   {
@@ -24,6 +25,7 @@ export default [
     },
     rules: {
       ...typescriptEslint.configs.recommended.rules,
+      ...prettier.rules,
       // allow console logs during development
       'no-console': 'off',
       // allow underscore variables for DB fields

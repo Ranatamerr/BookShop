@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json,md}\"",
     "dev": "ts-node-dev src/server.ts",
     "build": "tsc",
     "start": "node dist/index.js"
@@ -30,8 +32,11 @@
     "drizzle-kit": "^0.31.8",
     "drizzle-orm": "^0.45.1",
     "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-define-config": "^2.1.0",
+    "eslint-plugin-prettier": "^5.5.5",
     "pg": "^8.17.2",
+    "prettier": "^3.8.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.7.0",
