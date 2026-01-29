@@ -6,10 +6,9 @@ import { books } from './books.schema'
 import { tags } from './tags.schema'
 import { bookTags } from './book-tags.schema'
 
-// Define relationships
 export const usersRelations = relations(users, ({ many }) => ({
   books: many(books),
-}))
+})) // one user can have many books
 
 export const authorsRelations = relations(authors, ({ many }) => ({
   books: many(books),

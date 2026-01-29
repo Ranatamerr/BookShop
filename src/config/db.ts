@@ -11,9 +11,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 })
-pool.connect()
+pool
+  .connect()
   .then(() => console.log('🟢 PostgreSQL connected'))
-  .catch(err => console.error('❌ PostgreSQL connection error', err))
-
+  .catch((err) => console.error('❌ PostgreSQL connection error', err))
 
 export const db = drizzle(pool)
