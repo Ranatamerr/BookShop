@@ -26,21 +26,13 @@ export class TokenService {
 
   // Generate access and refresh tokens
   static async generateTokens(payload: TokenPayload): Promise<TokenResponse> {
-    const accessToken = jwt.sign(
-      payload,
-      this.JWT_SECRET,
-      {
-        expiresIn: this.ACCESS_TOKEN_EXPIRY,
-      } as jwt.SignOptions
-    )
+    const accessToken = jwt.sign(payload, this.JWT_SECRET, {
+      expiresIn: this.ACCESS_TOKEN_EXPIRY,
+    } as jwt.SignOptions)
 
-    const refreshToken = jwt.sign(
-      payload,
-      this.JWT_SECRET,
-      {
-        expiresIn: this.REFRESH_TOKEN_EXPIRY,
-      } as jwt.SignOptions
-    )
+    const refreshToken = jwt.sign(payload, this.JWT_SECRET, {
+      expiresIn: this.REFRESH_TOKEN_EXPIRY,
+    } as jwt.SignOptions)
 
     // Store tokens in Redis with expiry
     const accessTokenKey = `${this.ACCESS_TOKEN_PREFIX}${payload.userId}`
@@ -73,10 +65,7 @@ export class TokenService {
   }
 
   // Blacklist a token (for logout)
-  static async blacklistToken(
-    token: string,
-    expiresIn: number
-  ): Promise<void> {
+  static async blacklistToken(token: string, expiresIn: number): Promise<void> {
     const blacklistKey = `${this.BLACKLIST_PREFIX}${token}`
     // Store in blacklist until token would naturally expire
     await redis.setex(blacklistKey, expiresIn, 'blacklisted')

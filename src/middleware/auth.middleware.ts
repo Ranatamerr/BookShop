@@ -64,7 +64,10 @@ export async function authMiddleware(c: Context, next: Next) {
     // Continue to next middleware/handler
     await next()
   } catch (error) {
-    if (error instanceof Error && error.message === 'Invalid or expired token') {
+    if (
+      error instanceof Error &&
+      error.message === 'Invalid or expired token'
+    ) {
       return c.json(
         {
           success: false,
