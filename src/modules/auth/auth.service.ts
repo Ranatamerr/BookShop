@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from '../../config/db'
 import { users } from '../../db/schema/users.schema'
-import type { RegisterInput } from './auth.schema'
+import type { RegisterInput, LoginInput } from './auth.schema'
 
 export class AuthService {
   static async registerUser(data: RegisterInput) {
@@ -46,6 +46,34 @@ export class AuthService {
     // Remove password hash from response
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _, ...userWithoutPassword } = newUser
+
+    return userWithoutPassword
+  }
+
+  static async loginUser(data: LoginInput) {
+    const { email, password } = data
+
+    // Find user by email
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('Invalid email or password')
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password')
+    }
+
+    // Remove password hash from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _, ...userWithoutPassword } = user
 
     return userWithoutPassword
   }

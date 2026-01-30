@@ -11,5 +11,12 @@ export const registerSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
-// TypeScript type inferred from schema
+// Validation schema for user login
+export const loginSchema = z.object({
+  email: z.string().email('Invalid email format').toLowerCase().trim(),
+  password: z.string().min(1, 'Password is required'),
+})
+
+// TypeScript types inferred from schemas
 export type RegisterInput = z.infer<typeof registerSchema>
+export type LoginInput = z.infer<typeof loginSchema>
