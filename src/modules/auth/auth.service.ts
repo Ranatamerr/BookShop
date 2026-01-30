@@ -44,6 +44,7 @@ export class AuthService {
       .returning()
 
     // Remove password hash from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _, ...userWithoutPassword } = newUser
 
     return userWithoutPassword
