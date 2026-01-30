@@ -2,8 +2,14 @@ import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from '../../config/db'
 import { users } from '../../db/schema/users.schema'
-import type { RegisterInput, LoginInput } from './auth.schema'
+import type {
+  RegisterInput,
+  LoginInput,
+  ForgotPasswordInput,
+  ResetPasswordInput,
+} from './auth.schema'
 import { TokenService } from '../../utils/tokenService'
+import { redis } from '../../config/redis'
 
 export class AuthService {
   static async registerUser(data: RegisterInput) {
@@ -94,5 +100,70 @@ export class AuthService {
 
     // Blacklist the token
     await TokenService.blacklistToken(token, expiresIn)
+  }
+
+  static async forgotPassword(data: ForgotPasswordInput): Promise<void> {
+    const { email } = data
+
+    // Check if user exists
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+
+    // For security, don't reveal if email exists or not
+    // Always return success to prevent email enumeration
+    if (!user) {
+      // Silently return without error
+      return
+    }
+
+    // Static OTP for testing
+    const otp = '123456'
+
+    // Store OTP in Redis with 10 minutes expiry (600 seconds)
+    const otpKey = `otp:${email}`
+    await redis.setex(otpKey, 600, otp)
+
+    // In production, you would send this OTP via email
+    // For now, it's stored in Redis and can be retrieved for testing
+    console.log(`OTP for ${email}: ${otp}`)
+  }
+
+  static async resetPassword(data: ResetPasswordInput): Promise<void> {
+    const { email, otp, newPassword } = data
+
+    // Get OTP from Redis
+    const otpKey = `otp:${email}`
+    const storedOtp = await redis.get(otpKey)
+
+    // Verify OTP
+    if (!storedOtp || storedOtp !== otp) {
+      throw new Error('Invalid or expired OTP')
+    }
+
+    // Find user by email
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10)
+
+    // Update user password
+    await db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.email, email))
+
+    // Delete OTP from Redis after successful reset
+    await redis.del(otpKey)
   }
 }

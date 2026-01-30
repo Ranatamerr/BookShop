@@ -12,3 +12,9 @@ authRoutes.post('/login', AuthController.login)
 
 // User Logout (Protected)
 authRoutes.post('/logout', authMiddleware, AuthController.logout)
+
+// Forgot Password
+authRoutes.post('/forgot-password', AuthController.forgotPassword)
+
+// Reset Password
+authRoutes.post('/reset-password', AuthController.resetPassword)

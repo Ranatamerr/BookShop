@@ -1,6 +1,11 @@
 import { Context } from 'hono'
 import { AuthService } from './auth.service'
-import { registerSchema, loginSchema } from './auth.schema'
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from './auth.schema'
 import { ZodError } from 'zod'
 
 export class AuthController {
@@ -187,6 +192,114 @@ export class AuthController {
         {
           success: false,
           message: 'Logout failed. Please try again.',
+        },
+        500
+      )
+    }
+  }
+
+  // POST /auth/forgot-password
+  static async forgotPassword(c: Context) {
+    try {
+      // Parse and validate request body
+      const body = await c.req.json()
+      const validatedData = forgotPasswordSchema.parse(body)
+
+      // Call service to generate and store OTP
+      await AuthService.forgotPassword(validatedData)
+
+      // Always return success (don't reveal if email exists)
+      return c.json(
+        {
+          success: true,
+          message:
+            'If the email exists, a password reset OTP has been sent. Please check your email.',
+        },
+        200
+      )
+    } catch (error) {
+      // Handle validation errors
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      // Handle unexpected errors
+      console.error('Forgot password error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to process request. Please try again.',
+        },
+        500
+      )
+    }
+  }
+
+  // POST /auth/reset-password
+  static async resetPassword(c: Context) {
+    try {
+      // Parse and validate request body
+      const body = await c.req.json()
+      const validatedData = resetPasswordSchema.parse(body)
+
+      // Call service to reset password
+      await AuthService.resetPassword(validatedData)
+
+      return c.json(
+        {
+          success: true,
+          message:
+            'Password reset successfully. You can now login with your new password.',
+        },
+        200
+      )
+    } catch (error) {
+      // Handle validation errors
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      // Handle OTP or user errors
+      if (
+        error instanceof Error &&
+        (error.message.includes('Invalid or expired OTP') ||
+          error.message.includes('User not found'))
+      ) {
+        return c.json(
+          {
+            success: false,
+            message: error.message,
+          },
+          400
+        )
+      }
+
+      // Handle unexpected errors
+      console.error('Reset password error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to reset password. Please try again.',
         },
         500
       )
