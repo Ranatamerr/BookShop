@@ -18,3 +18,10 @@ authRoutes.post('/forgot-password', AuthController.forgotPassword)
 
 // Reset Password
 authRoutes.post('/reset-password', AuthController.resetPassword)
+
+// Change Password (Protected)
+authRoutes.post(
+  '/change-password',
+  authMiddleware,
+  AuthController.changePassword
+)

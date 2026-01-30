@@ -7,6 +7,7 @@ import type {
   LoginInput,
   ForgotPasswordInput,
   ResetPasswordInput,
+  ChangePasswordInput,
 } from './auth.schema'
 import { TokenService } from '../../utils/tokenService'
 import { redis } from '../../config/redis'
@@ -165,5 +166,42 @@ export class AuthService {
 
     // Delete OTP from Redis after successful reset
     await redis.del(otpKey)
+  }
+
+  static async changePassword(
+    userId: number,
+    data: ChangePasswordInput
+  ): Promise<void> {
+    const { oldPassword, newPassword } = data
+
+    // Find user by ID
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Verify old password
+    const isOldPasswordValid = await bcrypt.compare(
+      oldPassword,
+      user.passwordHash
+    )
+
+    if (!isOldPasswordValid) {
+      throw new Error('Current password is incorrect')
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10)
+
+    // Update user password
+    await db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(users.id, userId))
   }
 }

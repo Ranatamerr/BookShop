@@ -5,6 +5,7 @@ import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from './auth.schema'
 import { ZodError } from 'zod'
 
@@ -300,6 +301,69 @@ export class AuthController {
         {
           success: false,
           message: 'Failed to reset password. Please try again.',
+        },
+        500
+      )
+    }
+  }
+
+  // POST /auth/change-password (Protected)
+  static async changePassword(c: Context) {
+    try {
+      // Get user from context (set by auth middleware)
+      const user = c.get('user')
+
+      // Parse and validate request body
+      const body = await c.req.json()
+      const validatedData = changePasswordSchema.parse(body)
+
+      // Call service to change password
+      await AuthService.changePassword(user.userId, validatedData)
+
+      return c.json(
+        {
+          success: true,
+          message: 'Password changed successfully.',
+        },
+        200
+      )
+    } catch (error) {
+      // Handle validation errors
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      // Handle password verification errors
+      if (
+        error instanceof Error &&
+        (error.message.includes('Current password is incorrect') ||
+          error.message.includes('User not found'))
+      ) {
+        return c.json(
+          {
+            success: false,
+            message: error.message,
+          },
+          400
+        )
+      }
+
+      // Handle unexpected errors
+      console.error('Change password error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to change password. Please try again.',
         },
         500
       )
