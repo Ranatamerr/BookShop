@@ -90,16 +90,14 @@ export class AuthController {
       const validatedData = loginSchema.parse(body)
 
       // Call service to login user
-      const user = await AuthService.loginUser(validatedData)
+      const result = await AuthService.loginUser(validatedData)
 
-      // Return success response
+      // Return success response with tokens
       return c.json(
         {
           success: true,
           message: 'Login successful',
-          data: {
-            user,
-          },
+          data: result,
         },
         200
       )
@@ -139,6 +137,56 @@ export class AuthController {
         {
           success: false,
           message: 'Login failed. Please try again.',
+        },
+        500
+      )
+    }
+  }
+
+  // POST /auth/logout
+  static async logout(c: Context) {
+    try {
+      // Get token from Authorization header
+      const authHeader = c.req.header('Authorization')
+
+      if (!authHeader) {
+        return c.json(
+          {
+            success: false,
+            message: 'Authorization header is required',
+          },
+          401
+        )
+      }
+
+      const token = authHeader.split(' ')[1]
+
+      if (!token) {
+        return c.json(
+          {
+            success: false,
+            message: 'Token is required',
+          },
+          401
+        )
+      }
+
+      // Call service to logout user
+      await AuthService.logoutUser(token)
+
+      return c.json(
+        {
+          success: true,
+          message: 'Logout successful',
+        },
+        200
+      )
+    } catch (error) {
+      console.error('Logout error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Logout failed. Please try again.',
         },
         500
       )

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { db } from '../../config/db'
 import { users } from '../../db/schema/users.schema'
 import type { RegisterInput, LoginInput } from './auth.schema'
+import { TokenService } from '../../utils/tokenService'
 
 export class AuthService {
   static async registerUser(data: RegisterInput) {
@@ -71,10 +72,27 @@ export class AuthService {
       throw new Error('Invalid email or password')
     }
 
+    // Generate tokens
+    const tokens = await TokenService.generateTokens({
+      userId: user.id,
+      email: user.email,
+    })
+
     // Remove password hash from response
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _, ...userWithoutPassword } = user
 
-    return userWithoutPassword
+    return {
+      user: userWithoutPassword,
+      ...tokens,
+    }
+  }
+
+  static async logoutUser(token: string): Promise<void> {
+    // Get token expiry time
+    const expiresIn = TokenService.getTokenExpiry(token)
+
+    // Blacklist the token
+    await TokenService.blacklistToken(token, expiresIn)
   }
 }
