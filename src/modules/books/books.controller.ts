@@ -1,6 +1,10 @@
 import { Context } from 'hono'
 import { booksService } from './books.service'
-import { listBooksQuerySchema, bookIdParamSchema } from './books.schema'
+import {
+  listBooksQuerySchema,
+  bookIdParamSchema,
+  updateBookSchema,
+} from './books.schema'
 import { ZodError } from 'zod'
 
 export class BooksController {
@@ -90,6 +94,93 @@ export class BooksController {
         {
           success: false,
           message: 'Failed to retrieve book',
+        },
+        500
+      )
+    }
+  }
+
+  async updateBook(c: Context) {
+    try {
+      // Get user from auth middleware
+      const user = c.get('user')
+
+      // Get book ID from params
+      const params = c.req.param()
+      const { id } = bookIdParamSchema.parse(params)
+
+      // Get and validate request body
+      const body = await c.req.json()
+      const validatedData = updateBookSchema.parse(body)
+
+      // Check if at least one field is provided
+      if (Object.keys(validatedData).length === 0) {
+        return c.json(
+          {
+            success: false,
+            message: 'At least one field is required for update',
+          },
+          400
+        )
+      }
+
+      // Update the book
+      const updatedBook = await booksService.updateBook(
+        id,
+        user.userId,
+        validatedData
+      )
+
+      return c.json(
+        {
+          success: true,
+          message: 'Book updated successfully',
+          data: updatedBook,
+        },
+        200
+      )
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      if (error instanceof Error) {
+        if (error.message === 'Book not found') {
+          return c.json(
+            {
+              success: false,
+              message: 'Book not found',
+            },
+            404
+          )
+        }
+
+        if (error.message === 'You are not authorized to edit this book') {
+          return c.json(
+            {
+              success: false,
+              message: 'You are not authorized to edit this book',
+            },
+            403
+          )
+        }
+      }
+
+      console.error('Update book error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to update book',
         },
         500
       )

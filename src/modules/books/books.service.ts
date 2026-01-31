@@ -126,6 +126,42 @@ export class BooksService {
 
     return book || null
   }
+
+  async updateBook(
+    bookId: number,
+    userId: number,
+    updateData: Partial<typeof books.$inferInsert>
+  ) {
+    // First, check if the book exists and if the user owns it
+    const [existingBook] = await db
+      .select({
+        id: books.id,
+        ownerId: books.ownerId,
+      })
+      .from(books)
+      .where(eq(books.id, bookId))
+      .limit(1)
+
+    if (!existingBook) {
+      throw new Error('Book not found')
+    }
+
+    if (existingBook.ownerId !== userId) {
+      throw new Error('You are not authorized to edit this book')
+    }
+
+    // Update the book
+    const [updatedBook] = await db
+      .update(books)
+      .set({
+        ...updateData,
+        updatedAt: new Date(),
+      })
+      .where(eq(books.id, bookId))
+      .returning()
+
+    return updatedBook
+  }
 }
 
 export const booksService = new BooksService()
