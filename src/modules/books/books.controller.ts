@@ -100,6 +100,52 @@ export class BooksController {
     }
   }
 
+  async getMyBooks(c: Context) {
+    try {
+      // Get user from auth middleware
+      const user = c.get('user')
+
+      // Get and validate query params
+      const query = c.req.query()
+      const validatedQuery = listBooksQuerySchema.parse(query)
+
+      // Get user's books
+      const result = await booksService.getMyBooks(user.userId, validatedQuery)
+
+      return c.json(
+        {
+          success: true,
+          message: 'Your books retrieved successfully',
+          ...result,
+        },
+        200
+      )
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      console.error('Get my books error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to retrieve your books',
+        },
+        500
+      )
+    }
+  }
+
   async updateBook(c: Context) {
     try {
       // Get user from auth middleware

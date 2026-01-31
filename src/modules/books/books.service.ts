@@ -127,6 +127,95 @@ export class BooksService {
     return book || null
   }
 
+  async getMyBooks(userId: number, query: ListBooksQuery) {
+    const { page, limit } = query
+    const offset = (page - 1) * limit
+
+    // Get books owned by the user
+    const booksList = await db
+      .select({
+        id: books.id,
+        title: books.title,
+        description: books.description,
+        price: books.price,
+        thumbnail: books.thumbnail,
+        createdAt: books.createdAt,
+        updatedAt: books.updatedAt,
+        author: {
+          name: authors.name,
+          bio: authors.bio,
+        },
+        category: {
+          name: categories.name,
+        },
+      })
+      .from(books)
+      .leftJoin(authors, eq(books.authorId, authors.id))
+      .leftJoin(categories, eq(books.categoryId, categories.id))
+      .where(eq(books.ownerId, userId))
+      .orderBy(books.id)
+      .limit(limit)
+      .offset(offset)
+
+    // Get tags for each book
+    const bookIds = booksList.map((book) => book.id)
+
+    const bookTagsList =
+      bookIds.length > 0
+        ? await db
+            .select({
+              bookId: bookTags.bookId,
+              tag: {
+                id: tags.id,
+                name: tags.name,
+              },
+            })
+            .from(bookTags)
+            .leftJoin(tags, eq(bookTags.tagId, tags.id))
+            .where(inArray(bookTags.bookId, bookIds))
+        : []
+
+    // Group tags by book
+    const tagsByBook = bookTagsList.reduce(
+      (acc, item) => {
+        if (!acc[item.bookId]) {
+          acc[item.bookId] = []
+        }
+        if (item.tag) {
+          acc[item.bookId].push(item.tag)
+        }
+        return acc
+      },
+      {} as Record<number, Array<{ id: number; name: string }>>
+    )
+
+    // Combine books with their tags
+    const booksWithTags = booksList.map((book) => ({
+      ...book,
+      tags: tagsByBook[book.id] || [],
+    }))
+
+    // Get total count for pagination (only user's books)
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(books)
+      .where(eq(books.ownerId, userId))
+
+    const totalPages = Math.ceil(count / limit)
+
+    return {
+      data: booksWithTags,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    }
+  }
+
   async updateBook(
     bookId: number,
     userId: number,
