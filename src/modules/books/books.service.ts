@@ -104,6 +104,28 @@ export class BooksService {
       },
     }
   }
+
+  async getBookById(id: number) {
+    const [book] = await db
+      .select({
+        title: books.title,
+        price: books.price,
+        thumbnail: books.thumbnail,
+        author: {
+          name: authors.name,
+        },
+        category: {
+          name: categories.name,
+        },
+      })
+      .from(books)
+      .leftJoin(authors, eq(books.authorId, authors.id))
+      .leftJoin(categories, eq(books.categoryId, categories.id))
+      .where(eq(books.id, id))
+      .limit(1)
+
+    return book || null
+  }
 }
 
 export const booksService = new BooksService()

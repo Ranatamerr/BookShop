@@ -18,3 +18,12 @@ export const listBooksQuerySchema = z.object({
 })
 
 export type ListBooksQuery = z.infer<typeof listBooksQuerySchema>
+
+export const bookIdParamSchema = z.object({
+  id: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => val > 0, { message: 'Book ID must be a positive number' }),
+})
+
+export type BookIdParam = z.infer<typeof bookIdParamSchema>
