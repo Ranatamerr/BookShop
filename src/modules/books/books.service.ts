@@ -1,0 +1,109 @@
+import { db } from '../../config/db'
+import { books } from '../../db/schema/books.schema'
+import { authors } from '../../db/schema/authors.schema'
+import { categories } from '../../db/schema/categories.schema'
+import { users } from '../../db/schema/users.schema'
+import { bookTags } from '../../db/schema/book-tags.schema'
+import { tags } from '../../db/schema/tags.schema'
+import { eq, sql, inArray } from 'drizzle-orm'
+import type { ListBooksQuery } from './books.schema'
+
+export class BooksService {
+  async listBooks(query: ListBooksQuery) {
+    const { page, limit } = query
+    const offset = (page - 1) * limit
+
+    // Get books with related data
+    const booksList = await db
+      .select({
+        id: books.id,
+        title: books.title,
+        description: books.description,
+        price: books.price,
+        thumbnail: books.thumbnail,
+        createdAt: books.createdAt,
+        updatedAt: books.updatedAt,
+        author: {
+          id: authors.id,
+          name: authors.name,
+          bio: authors.bio,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+        },
+        owner: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+        },
+      })
+      .from(books)
+      .leftJoin(authors, eq(books.authorId, authors.id))
+      .leftJoin(categories, eq(books.categoryId, categories.id))
+      .leftJoin(users, eq(books.ownerId, users.id))
+      .limit(limit)
+      .offset(offset)
+      .orderBy(books.createdAt)
+
+    // Get tags for each book
+    const bookIds = booksList.map((book) => book.id)
+
+    // Only query tags if there are books
+    const bookTagsList =
+      bookIds.length > 0
+        ? await db
+            .select({
+              bookId: bookTags.bookId,
+              tag: {
+                id: tags.id,
+                name: tags.name,
+              },
+            })
+            .from(bookTags)
+            .leftJoin(tags, eq(bookTags.tagId, tags.id))
+            .where(inArray(bookTags.bookId, bookIds))
+        : []
+
+    // Group tags by book
+    const tagsByBook = bookTagsList.reduce(
+      (acc, item) => {
+        if (!acc[item.bookId]) {
+          acc[item.bookId] = []
+        }
+        if (item.tag) {
+          acc[item.bookId].push(item.tag)
+        }
+        return acc
+      },
+      {} as Record<number, Array<{ id: number; name: string }>>
+    )
+
+    // Combine books with their tags
+    const booksWithTags = booksList.map((book) => ({
+      ...book,
+      tags: tagsByBook[book.id] || [],
+    }))
+
+    // Get total count for pagination
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(books)
+
+    const totalPages = Math.ceil(count / limit)
+
+    return {
+      data: booksWithTags,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    }
+  }
+}
+
+export const booksService = new BooksService()

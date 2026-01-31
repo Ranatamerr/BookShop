@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import dotenv from 'dotenv'
 import { authRoutes } from './modules/auth/auth.routes'
+import { booksRoutes } from './modules/books/books.routes'
 
 dotenv.config()
 
@@ -17,5 +18,6 @@ app.get('/', (c) =>
 
 // Mount routes
 app.route('/auth', authRoutes)
+app.route('/books', booksRoutes)
 
 export default app
