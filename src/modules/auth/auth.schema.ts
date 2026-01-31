@@ -51,9 +51,26 @@ export const changePasswordSchema = z
     path: ['confirmPassword'],
   })
 
+// Validation schema for update profile
+export const updateProfileSchema = z.object({
+  username: z
+    .string()
+    .min(3, 'Username must be at least 3 characters')
+    .max(50, 'Username must not exceed 50 characters')
+    .trim()
+    .optional(),
+  email: z
+    .string()
+    .email('Invalid email format')
+    .toLowerCase()
+    .trim()
+    .optional(),
+})
+
 // TypeScript types inferred from schemas
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>

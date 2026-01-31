@@ -28,3 +28,6 @@ authRoutes.post(
 
 // Get User Profile (Protected)
 authRoutes.get('/profile', authMiddleware, AuthController.getProfile)
+
+// Update User Profile (Protected)
+authRoutes.patch('/profile', authMiddleware, AuthController.updateProfile)

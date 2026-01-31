@@ -6,6 +6,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   changePasswordSchema,
+  updateProfileSchema,
 } from './auth.schema'
 import { ZodError } from 'zod'
 
@@ -406,6 +407,75 @@ export class AuthController {
         {
           success: false,
           message: 'Failed to retrieve profile. Please try again.',
+        },
+        500
+      )
+    }
+  }
+
+  // PATCH /auth/profile (Protected)
+  static async updateProfile(c: Context) {
+    try {
+      // Get user from context (set by auth middleware)
+      const user = c.get('user')
+
+      // Parse and validate request body
+      const body = await c.req.json()
+      const validatedData = updateProfileSchema.parse(body)
+
+      // Call service to update user profile
+      const updatedProfile = await AuthService.updateUserProfile(
+        user.userId,
+        validatedData
+      )
+
+      return c.json(
+        {
+          success: true,
+          message: 'Profile updated successfully',
+          data: {
+            user: updatedProfile,
+          },
+        },
+        200
+      )
+    } catch (error) {
+      // Handle validation errors
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      // Handle uniqueness constraint errors
+      if (
+        error instanceof Error &&
+        (error.message.includes('already taken') ||
+          error.message.includes('User not found'))
+      ) {
+        return c.json(
+          {
+            success: false,
+            message: error.message,
+          },
+          409
+        )
+      }
+
+      // Handle unexpected errors
+      console.error('Update profile error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to update profile. Please try again.',
         },
         500
       )

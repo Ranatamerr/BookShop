@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { eq } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { db } from '../../config/db'
 import { users } from '../../db/schema/users.schema'
 import type {
@@ -8,6 +8,7 @@ import type {
   ForgotPasswordInput,
   ResetPasswordInput,
   ChangePasswordInput,
+  UpdateProfileInput,
 } from './auth.schema'
 import { TokenService } from '../../utils/tokenService'
 import { redis } from '../../config/redis'
@@ -220,6 +221,65 @@ export class AuthService {
     // Remove password hash from response
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _, ...userWithoutPassword } = user
+
+    return userWithoutPassword
+  }
+
+  static async updateUserProfile(userId: number, data: UpdateProfileInput) {
+    const { username, email } = data
+
+    // If no fields to update, return current user
+    if (!username && !email) {
+      return this.getUserProfile(userId)
+    }
+
+    // Check if username is being updated and is already taken by another user
+    if (username) {
+      const existingUsername = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.username, username), ne(users.id, userId)))
+        .limit(1)
+
+      if (existingUsername.length > 0) {
+        throw new Error('Username is already taken')
+      }
+    }
+
+    // Check if email is being updated and is already taken by another user
+    if (email) {
+      const existingEmail = await db
+        .select()
+        .from(users)
+        .where(and(eq(users.email, email), ne(users.id, userId)))
+        .limit(1)
+
+      if (existingEmail.length > 0) {
+        throw new Error('Email is already taken')
+      }
+    }
+
+    // Build update object with only provided fields
+    const updateData: Partial<typeof users.$inferInsert> = {
+      updatedAt: new Date(),
+    }
+    if (username !== undefined) updateData.username = username
+    if (email !== undefined) updateData.email = email
+
+    // Update user
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning()
+
+    if (!updatedUser) {
+      throw new Error('Failed to update user profile')
+    }
+
+    // Remove password hash from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _, ...userWithoutPassword } = updatedUser
 
     return userWithoutPassword
   }
