@@ -162,6 +162,31 @@ export class BooksService {
 
     return updatedBook
   }
+
+  async deleteBook(bookId: number, userId: number) {
+    // First, check if the book exists and if the user owns it
+    const [existingBook] = await db
+      .select({
+        id: books.id,
+        ownerId: books.ownerId,
+      })
+      .from(books)
+      .where(eq(books.id, bookId))
+      .limit(1)
+
+    if (!existingBook) {
+      throw new Error('Book not found')
+    }
+
+    if (existingBook.ownerId !== userId) {
+      throw new Error('You are not authorized to delete this book')
+    }
+
+    // Delete the book
+    await db.delete(books).where(eq(books.id, bookId))
+
+    return { deleted: true }
+  }
 }
 
 export const booksService = new BooksService()

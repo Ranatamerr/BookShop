@@ -12,3 +12,6 @@ booksRoutes.get('/:id', (c) => booksController.getBookById(c))
 
 // PUT /books/:id - Update book (Protected - only owner)
 booksRoutes.put('/:id', authMiddleware, (c) => booksController.updateBook(c))
+
+// DELETE /books/:id - Delete book (Protected - only owner)
+booksRoutes.delete('/:id', authMiddleware, (c) => booksController.deleteBook(c))
