@@ -369,4 +369,46 @@ export class AuthController {
       )
     }
   }
+
+  // GET /auth/profile (Protected)
+  static async getProfile(c: Context) {
+    try {
+      // Get user from context (set by auth middleware)
+      const user = c.get('user')
+
+      // Call service to get full user profile
+      const profile = await AuthService.getUserProfile(user.userId)
+
+      return c.json(
+        {
+          success: true,
+          data: {
+            user: profile,
+          },
+        },
+        200
+      )
+    } catch (error) {
+      // Handle user not found errors
+      if (error instanceof Error && error.message.includes('User not found')) {
+        return c.json(
+          {
+            success: false,
+            message: 'User not found',
+          },
+          404
+        )
+      }
+
+      // Handle unexpected errors
+      console.error('Get profile error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to retrieve profile. Please try again.',
+        },
+        500
+      )
+    }
+  }
 }

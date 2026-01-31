@@ -25,3 +25,6 @@ authRoutes.post(
   authMiddleware,
   AuthController.changePassword
 )
+
+// Get User Profile (Protected)
+authRoutes.get('/profile', authMiddleware, AuthController.getProfile)

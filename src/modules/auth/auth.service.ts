@@ -204,4 +204,23 @@ export class AuthService {
       .set({ passwordHash, updatedAt: new Date() })
       .where(eq(users.id, userId))
   }
+
+  static async getUserProfile(userId: number) {
+    // Find user by ID
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Remove password hash from response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _, ...userWithoutPassword } = user
+
+    return userWithoutPassword
+  }
 }
