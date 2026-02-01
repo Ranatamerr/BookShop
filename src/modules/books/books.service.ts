@@ -11,9 +11,10 @@ import type {
   MyBooksQuery,
   CreateBookInput,
 } from './books.schema'
+import { isArabicBookInput } from './books.schema'
 
 export class BooksService {
-  async listBooks(query: ListBooksQuery) {
+  async listBooks(query: ListBooksQuery, language: string = 'en') {
     const { page, limit, search, sortBy, category, minPrice, maxPrice } = query
     const offset = (page - 1) * limit
 
@@ -46,20 +47,20 @@ export class BooksService {
     const booksList = await db
       .select({
         id: books.id,
-        title: books.title,
-        description: books.description,
+        title: sql<string>`COALESCE(${language === 'ar' ? books.titleAr : books.title}, ${books.title})`,
+        description: sql<string>`COALESCE(${language === 'ar' ? books.descriptionAr : books.description}, ${books.description})`,
         price: books.price,
         thumbnail: books.thumbnail,
         createdAt: books.createdAt,
         updatedAt: books.updatedAt,
         author: {
           id: authors.id,
-          name: authors.name,
-          bio: authors.bio,
+          name: sql<string>`COALESCE(${language === 'ar' ? authors.nameAr : authors.name}, ${authors.name})`,
+          bio: sql<string>`COALESCE(${language === 'ar' ? authors.bioAr : authors.bio}, ${authors.bio})`,
         },
         category: {
           id: categories.id,
-          name: categories.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? categories.nameAr : categories.name}, ${categories.name})`,
         },
         owner: {
           id: users.id,
@@ -161,17 +162,18 @@ export class BooksService {
     }
   }
 
-  async getBookById(id: number) {
+  async getBookById(id: number, language: string = 'en') {
     const [book] = await db
       .select({
-        title: books.title,
+        title: sql<string>`COALESCE(${language === 'ar' ? books.titleAr : books.title}, ${books.title})`,
+        description: sql<string>`COALESCE(${language === 'ar' ? books.descriptionAr : books.description}, ${books.description})`,
         price: books.price,
         thumbnail: books.thumbnail,
         author: {
-          name: authors.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? authors.nameAr : authors.name}, ${authors.name})`,
         },
         category: {
-          name: categories.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? categories.nameAr : categories.name}, ${categories.name})`,
         },
       })
       .from(books)
@@ -183,75 +185,140 @@ export class BooksService {
     return book || null
   }
 
-  async createBook(userId: number, bookData: CreateBookInput) {
-    // Find or create author (case-insensitive)
-    let author = await db
-      .select()
-      .from(authors)
-      .where(sql`LOWER(${authors.name}) = LOWER(${bookData.authorName})`)
-      .limit(1)
+  async createBook(
+    userId: number,
+    bookData: CreateBookInput,
+    language: string = 'en'
+  ) {
+    // Determine if input is English or Arabic
+    const isArabic = isArabicBookInput(bookData)
 
-    if (author.length === 0) {
-      // Create new author
-      const [newAuthor] = await db
-        .insert(authors)
-        .values({
-          name: bookData.authorName,
-          bio: null,
-        })
-        .returning()
-      author = [newAuthor]
+    // Find or create author (case-insensitive)
+    let author
+    if (isArabic) {
+      author = await db
+        .select()
+        .from(authors)
+        .where(sql`LOWER(${authors.nameAr}) = LOWER(${bookData.authorNameAr})`)
+        .limit(1)
+
+      if (author.length === 0) {
+        // Create new author with Arabic name
+        const [newAuthor] = await db
+          .insert(authors)
+          .values({
+            name: bookData.authorNameAr, // Store Arabic as fallback for English
+            nameAr: bookData.authorNameAr,
+            bio: null,
+          })
+          .returning()
+        author = [newAuthor]
+      }
+    } else {
+      author = await db
+        .select()
+        .from(authors)
+        .where(sql`LOWER(${authors.name}) = LOWER(${bookData.authorName})`)
+        .limit(1)
+
+      if (author.length === 0) {
+        // Create new author with English name
+        const [newAuthor] = await db
+          .insert(authors)
+          .values({
+            name: bookData.authorName,
+            bio: null,
+          })
+          .returning()
+        author = [newAuthor]
+      }
     }
 
     // Find or create category (case-insensitive)
-    let category = await db
-      .select()
-      .from(categories)
-      .where(sql`LOWER(${categories.name}) = LOWER(${bookData.categoryName})`)
-      .limit(1)
+    let category
+    if (isArabic) {
+      category = await db
+        .select()
+        .from(categories)
+        .where(
+          sql`LOWER(${categories.nameAr}) = LOWER(${bookData.categoryNameAr})`
+        )
+        .limit(1)
 
-    if (category.length === 0) {
-      // Create new category
-      const [newCategory] = await db
-        .insert(categories)
-        .values({
-          name: bookData.categoryName,
-        })
-        .returning()
-      category = [newCategory]
+      if (category.length === 0) {
+        // Create new category with Arabic name
+        const [newCategory] = await db
+          .insert(categories)
+          .values({
+            name: bookData.categoryNameAr, // Store Arabic as fallback for English
+            nameAr: bookData.categoryNameAr,
+          })
+          .returning()
+        category = [newCategory]
+      }
+    } else {
+      category = await db
+        .select()
+        .from(categories)
+        .where(sql`LOWER(${categories.name}) = LOWER(${bookData.categoryName})`)
+        .limit(1)
+
+      if (category.length === 0) {
+        // Create new category with English name
+        const [newCategory] = await db
+          .insert(categories)
+          .values({
+            name: bookData.categoryName,
+          })
+          .returning()
+        category = [newCategory]
+      }
     }
 
-    // Insert the new book
-    const [newBook] = await db
-      .insert(books)
-      .values({
-        title: bookData.title,
-        description: bookData.description || null,
-        price: bookData.price,
-        thumbnail: bookData.thumbnail || null,
-        ownerId: userId,
-        authorId: author[0].id,
-        categoryId: category[0].id,
-      })
-      .returning()
+    // Insert the new book with appropriate fields
+    const bookValues = isArabic
+      ? {
+          title: bookData.titleAr, // Store Arabic as fallback
+          titleAr: bookData.titleAr,
+          description: bookData.descriptionAr || null,
+          descriptionAr: bookData.descriptionAr || null,
+          price: bookData.price,
+          thumbnail: bookData.thumbnail || null,
+          ownerId: userId,
+          authorId: author[0].id,
+          categoryId: category[0].id,
+        }
+      : {
+          title: bookData.title,
+          titleAr: null,
+          description: bookData.description || null,
+          descriptionAr: null,
+          price: bookData.price,
+          thumbnail: bookData.thumbnail || null,
+          ownerId: userId,
+          authorId: author[0].id,
+          categoryId: category[0].id,
+        }
+
+    const [newBook] = await db.insert(books).values(bookValues).returning()
 
     // Get the complete book details with author and category
     const bookDetails = await db
       .select({
         id: books.id,
-        title: books.title,
-        description: books.description,
+        title: sql<string>`COALESCE(${language === 'ar' ? books.titleAr : books.title}, ${books.title})`,
+        description: sql<string>`COALESCE(${language === 'ar' ? books.descriptionAr : books.description}, ${books.description})`,
         price: books.price,
         thumbnail: books.thumbnail,
         createdAt: books.createdAt,
         updatedAt: books.updatedAt,
         author: {
           id: authors.id,
-          name: authors.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? authors.nameAr : authors.name}, ${authors.name})`,
         },
         category: {
           id: categories.id,
-          name: categories.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? categories.nameAr : categories.name}, ${categories.name})`,
         },
       })
       .from(books)
@@ -263,7 +330,11 @@ export class BooksService {
     return bookDetails[0]
   }
 
-  async getMyBooks(userId: number, query: MyBooksQuery) {
+  async getMyBooks(
+    userId: number,
+    query: MyBooksQuery,
+    language: string = 'en'
+  ) {
     const { page, limit, search, sortBy, category, minPrice, maxPrice } = query
     const offset = (page - 1) * limit
 
@@ -292,18 +363,18 @@ export class BooksService {
     const booksList = await db
       .select({
         id: books.id,
-        title: books.title,
-        description: books.description,
+        title: sql<string>`COALESCE(${language === 'ar' ? books.titleAr : books.title}, ${books.title})`,
+        description: sql<string>`COALESCE(${language === 'ar' ? books.descriptionAr : books.description}, ${books.description})`,
         price: books.price,
         thumbnail: books.thumbnail,
         createdAt: books.createdAt,
         updatedAt: books.updatedAt,
         author: {
-          name: authors.name,
-          bio: authors.bio,
+          name: sql<string>`COALESCE(${language === 'ar' ? authors.nameAr : authors.name}, ${authors.name})`,
+          bio: sql<string>`COALESCE(${language === 'ar' ? authors.bioAr : authors.bio}, ${authors.bio})`,
         },
         category: {
-          name: categories.name,
+          name: sql<string>`COALESCE(${language === 'ar' ? categories.nameAr : categories.name}, ${categories.name})`,
         },
       })
       .from(books)

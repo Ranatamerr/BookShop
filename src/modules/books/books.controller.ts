@@ -8,20 +8,24 @@ import {
   createBookSchema,
 } from './books.schema'
 import { ZodError } from 'zod'
+import i18n from '../../config/i18n'
 
 export class BooksController {
   async listBooks(c: Context) {
     try {
       const query = c.req.query()
       const validatedQuery = listBooksQuerySchema.parse(query)
+      const language = c.get('language') || 'en'
 
-      const result = await booksService.listBooks(validatedQuery)
+      i18n.changeLanguage(language)
+
+      const result = await booksService.listBooks(validatedQuery, language)
 
       // Check if no books found with search term
       const message =
         result.data.length === 0 && validatedQuery.search
-          ? `No books found matching "${validatedQuery.search}"`
-          : 'Books retrieved successfully'
+          ? i18n.t('books.noMatching', { search: validatedQuery.search })
+          : i18n.t('books.retrieved')
 
       return c.json(
         {
@@ -36,7 +40,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -50,7 +54,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to retrieve books',
+          message: i18n.t('books.failed'),
         },
         500
       )
@@ -61,14 +65,17 @@ export class BooksController {
     try {
       const params = c.req.param()
       const { id } = bookIdParamSchema.parse(params)
+      const language = c.get('language') || 'en'
 
-      const book = await booksService.getBookById(id)
+      i18n.changeLanguage(language)
+
+      const book = await booksService.getBookById(id, language)
 
       if (!book) {
         return c.json(
           {
             success: false,
-            message: 'Book not found',
+            message: i18n.t('books.notFound'),
           },
           404
         )
@@ -77,7 +84,7 @@ export class BooksController {
       return c.json(
         {
           success: true,
-          message: 'Book retrieved successfully',
+          message: i18n.t('books.retrieved'),
           data: book,
         },
         200
@@ -87,7 +94,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -101,7 +108,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to retrieve book',
+          message: i18n.t('books.failed'),
         },
         500
       )
@@ -112,19 +119,26 @@ export class BooksController {
     try {
       // Get user from auth middleware
       const user = c.get('user')
+      const language = c.get('language') || 'en'
+
+      i18n.changeLanguage(language)
 
       // Get and validate query params
       const query = c.req.query()
       const validatedQuery = myBooksQuerySchema.parse(query)
 
       // Get user's books
-      const result = await booksService.getMyBooks(user.userId, validatedQuery)
+      const result = await booksService.getMyBooks(
+        user.userId,
+        validatedQuery,
+        language
+      )
 
       // Check if no books found with search term
       const message =
         result.data.length === 0 && validatedQuery.search
-          ? `No books found matching "${validatedQuery.search}"`
-          : 'Your books retrieved successfully'
+          ? i18n.t('books.noMatching', { search: validatedQuery.search })
+          : i18n.t('books.yourBooksRetrieved')
 
       return c.json(
         {
@@ -139,7 +153,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -153,7 +167,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to retrieve your books',
+          message: i18n.t('books.failed'),
         },
         500
       )
@@ -164,18 +178,25 @@ export class BooksController {
     try {
       // Get user from auth middleware
       const user = c.get('user')
+      const language = c.get('language') || 'en'
+
+      i18n.changeLanguage(language)
 
       // Get and validate request body
       const body = await c.req.json()
       const validatedData = createBookSchema.parse(body)
 
       // Create the book
-      const newBook = await booksService.createBook(user.userId, validatedData)
+      const newBook = await booksService.createBook(
+        user.userId,
+        validatedData,
+        language
+      )
 
       return c.json(
         {
           success: true,
-          message: 'Book created successfully',
+          message: i18n.t('books.created'),
           data: newBook,
         },
         201
@@ -185,7 +206,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -199,7 +220,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to create book',
+          message: i18n.t('books.failedCreate'),
         },
         500
       )
@@ -210,6 +231,9 @@ export class BooksController {
     try {
       // Get user from auth middleware
       const user = c.get('user')
+      const language = c.get('language') || 'en'
+
+      i18n.changeLanguage(language)
 
       // Get book ID from params
       const params = c.req.param()
@@ -224,7 +248,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'At least one field is required for update',
+            message: i18n.t('books.atLeastOneField'),
           },
           400
         )
@@ -240,7 +264,7 @@ export class BooksController {
       return c.json(
         {
           success: true,
-          message: 'Book updated successfully',
+          message: i18n.t('books.updated'),
           data: updatedBook,
         },
         200
@@ -250,7 +274,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -265,7 +289,7 @@ export class BooksController {
           return c.json(
             {
               success: false,
-              message: 'Book not found',
+              message: i18n.t('books.notFound'),
             },
             404
           )
@@ -275,7 +299,7 @@ export class BooksController {
           return c.json(
             {
               success: false,
-              message: 'You are not authorized to edit this book',
+              message: i18n.t('books.unauthorized'),
             },
             403
           )
@@ -286,7 +310,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to update book',
+          message: i18n.t('books.failedUpdate'),
         },
         500
       )
@@ -297,6 +321,9 @@ export class BooksController {
     try {
       // Get user from auth middleware
       const user = c.get('user')
+      const language = c.get('language') || 'en'
+
+      i18n.changeLanguage(language)
 
       // Get book ID from params
       const params = c.req.param()
@@ -308,7 +335,7 @@ export class BooksController {
       return c.json(
         {
           success: true,
-          message: 'Book deleted successfully',
+          message: i18n.t('books.deleted'),
         },
         200
       )
@@ -317,7 +344,7 @@ export class BooksController {
         return c.json(
           {
             success: false,
-            message: 'Validation error',
+            message: i18n.t('validation.error'),
             errors: error.issues.map((err) => ({
               field: err.path.join('.'),
               message: err.message,
@@ -332,7 +359,7 @@ export class BooksController {
           return c.json(
             {
               success: false,
-              message: 'Book not found',
+              message: i18n.t('books.notFound'),
             },
             404
           )
@@ -342,7 +369,7 @@ export class BooksController {
           return c.json(
             {
               success: false,
-              message: 'You are not authorized to delete this book',
+              message: i18n.t('books.unauthorizedDelete'),
             },
             403
           )
@@ -353,7 +380,7 @@ export class BooksController {
       return c.json(
         {
           success: false,
-          message: 'Failed to delete book',
+          message: i18n.t('books.failedDelete'),
         },
         500
       )

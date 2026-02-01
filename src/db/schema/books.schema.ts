@@ -13,7 +13,11 @@ export const books = pgTable('books', {
 
   title: varchar('title', { length: 200 }).notNull(),
 
+  titleAr: varchar('title_ar', { length: 200 }),
+
   description: text('description'),
+
+  descriptionAr: text('description_ar'),
 
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 

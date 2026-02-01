@@ -1,8 +1,12 @@
 import { Hono } from 'hono'
 import { booksController } from './books.controller'
 import { authMiddleware } from '../../middleware/auth.middleware'
+import { languageMiddleware } from '../../middleware/language.middleware'
 
 export const booksRoutes = new Hono()
+
+// Apply language middleware to all routes
+booksRoutes.use('*', languageMiddleware)
 
 // GET /books - List all books with pagination
 booksRoutes.get('/', (c) => booksController.listBooks(c))

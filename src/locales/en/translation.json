@@ -1,0 +1,21 @@
+{
+  "books": {
+    "retrieved": "Books retrieved successfully",
+    "yourBooksRetrieved": "Your books retrieved successfully",
+    "notFound": "Book not found",
+    "created": "Book created successfully",
+    "updated": "Book updated successfully",
+    "deleted": "Book deleted successfully",
+    "noMatching": "No books found matching \"{{search}}\"",
+    "unauthorized": "You are not authorized to edit this book",
+    "unauthorizedDelete": "You are not authorized to delete this book",
+    "failed": "Failed to retrieve books",
+    "failedCreate": "Failed to create book",
+    "failedUpdate": "Failed to update book",
+    "failedDelete": "Failed to delete book",
+    "atLeastOneField": "At least one field is required for update"
+  },
+  "validation": {
+    "error": "Validation error"
+  }
+}

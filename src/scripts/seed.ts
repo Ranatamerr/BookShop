@@ -50,16 +50,16 @@ async function seed() {
     const insertedCategories = await db
       .insert(categories)
       .values([
-        { name: 'Fiction' },
-        { name: 'Non-Fiction' },
-        { name: 'Science Fiction' },
-        { name: 'Mystery' },
-        { name: 'Romance' },
-        { name: 'Biography' },
-        { name: 'Self-Help' },
-        { name: 'History' },
-        { name: 'Technology' },
-        { name: 'Fantasy' },
+        { name: 'Fiction', nameAr: 'خيال' },
+        { name: 'Non-Fiction', nameAr: 'واقعي' },
+        { name: 'Science Fiction', nameAr: 'خيال علمي' },
+        { name: 'Mystery', nameAr: 'غموض' },
+        { name: 'Romance', nameAr: 'رومانسي' },
+        { name: 'Biography', nameAr: 'سيرة ذاتية' },
+        { name: 'Self-Help', nameAr: 'تطوير الذات' },
+        { name: 'History', nameAr: 'تاريخ' },
+        { name: 'Technology', nameAr: 'تكنولوجيا' },
+        { name: 'Fantasy', nameAr: 'فانتازيا' },
       ])
       .returning()
     console.log(`✅ Created ${insertedCategories.length} categories`)
@@ -71,43 +71,64 @@ async function seed() {
       .values([
         {
           name: 'J.K. Rowling',
+          nameAr: 'ج.ك. رولينج',
           bio: 'British author best known for the Harry Potter fantasy series.',
+          bioAr: 'مؤلفة بريطانية اشتهرت بسلسلة هاري بوتر الخيالية.',
         },
         {
           name: 'George Orwell',
+          nameAr: 'جورج أورويل',
           bio: 'English novelist and essayist, journalist and critic.',
+          bioAr: 'روائي ومقالي وصحفي وناقد إنجليزي.',
         },
         {
           name: 'Agatha Christie',
+          nameAr: 'أجاثا كريستي',
           bio: 'English writer known for her detective novels.',
+          bioAr: 'كاتبة إنجليزية معروفة برواياتها البوليسية.',
         },
         {
           name: 'Stephen King',
+          nameAr: 'ستيفن كينج',
           bio: 'American author of horror, supernatural fiction, and suspense.',
+          bioAr: 'مؤلف أمريكي للرعب والخيال الخارق والتشويق.',
         },
         {
           name: 'Jane Austen',
+          nameAr: 'جين أوستن',
           bio: 'English novelist known primarily for her six major novels.',
+          bioAr: 'روائية إنجليزية معروفة برواياتها الست الرئيسية.',
         },
         {
           name: 'Isaac Asimov',
+          nameAr: 'إسحاق أسيموف',
           bio: 'American writer and professor of biochemistry, known for science fiction.',
+          bioAr: 'كاتب أمريكي وأستاذ كيمياء حيوية، معروف بالخيال العلمي.',
         },
         {
           name: 'Malcolm Gladwell',
+          nameAr: 'مالكولم جلادويل',
           bio: 'Canadian journalist, author, and public speaker.',
+          bioAr: 'صحفي كندي ومؤلف ومتحدث عام.',
         },
         {
           name: 'Yuval Noah Harari',
+          nameAr: 'يوفال نوح هراري',
           bio: 'Israeli historian and professor at the Hebrew University of Jerusalem.',
+          bioAr: 'مؤرخ إسرائيلي وأستاذ في الجامعة العبرية في القدس.',
         },
         {
           name: 'Michelle Obama',
+          nameAr: 'ميشيل أوباما',
           bio: 'American attorney and author who served as First Lady of the United States.',
+          bioAr:
+            'محامية ومؤلفة أمريكية شغلت منصب السيدة الأولى للولايات المتحدة.',
         },
         {
           name: 'James Clear',
+          nameAr: 'جيمس كلير',
           bio: 'American author and speaker focused on habits and decision making.',
+          bioAr: 'مؤلف ومتحدث أمريكي يركز على العادات واتخاذ القرارات.',
         },
       ])
       .returning()
@@ -143,8 +164,11 @@ async function seed() {
       .values([
         {
           title: "Harry Potter and the Philosopher's Stone",
+          titleAr: 'هاري بوتر وحجر الفيلسوف',
           description:
             'The first novel in the Harry Potter series, following a young wizard.',
+          descriptionAr:
+            'الرواية الأولى في سلسلة هاري بوتر، تتبع ساحراً صغيراً.',
           price: '19.99',
           thumbnail: 'https://example.com/harry-potter-1.jpg',
           ownerId: insertedUsers[0].id,
@@ -153,8 +177,10 @@ async function seed() {
         },
         {
           title: '1984',
+          titleAr: '1984',
           description:
             'Dystopian social science fiction novel and cautionary tale.',
+          descriptionAr: 'رواية خيال علمي اجتماعي ديستوبي وحكاية تحذيرية.',
           price: '15.99',
           thumbnail: 'https://example.com/1984.jpg',
           ownerId: insertedUsers[0].id,
@@ -163,7 +189,9 @@ async function seed() {
         },
         {
           title: 'Murder on the Orient Express',
+          titleAr: 'جريمة في قطار الشرق السريع',
           description: 'A work of detective fiction featuring Hercule Poirot.',
+          descriptionAr: 'عمل خيالي بوليسي يضم هرقل بوارو.',
           price: '14.99',
           thumbnail: 'https://example.com/orient-express.jpg',
           ownerId: insertedUsers[1].id,
@@ -172,8 +200,10 @@ async function seed() {
         },
         {
           title: 'The Shining',
+          titleAr: 'البريق',
           description:
             'Horror novel about a family isolated in a haunted hotel.',
+          descriptionAr: 'رواية رعب عن عائلة معزولة في فندق مسكون.',
           price: '16.99',
           thumbnail: 'https://example.com/shining.jpg',
           ownerId: insertedUsers[1].id,
@@ -182,7 +212,9 @@ async function seed() {
         },
         {
           title: 'Pride and Prejudice',
+          titleAr: 'كبرياء وتحامل',
           description: 'A romantic novel of manners.',
+          descriptionAr: 'رواية رومانسية عن الأخلاق والسلوكيات.',
           price: '12.99',
           thumbnail: 'https://example.com/pride-prejudice.jpg',
           ownerId: insertedUsers[2].id,
@@ -191,8 +223,10 @@ async function seed() {
         },
         {
           title: 'Foundation',
+          titleAr: 'المؤسسة',
           description:
             'Science fiction novel about the fall and rise of a galactic empire.',
+          descriptionAr: 'رواية خيال علمي عن سقوط وصعود إمبراطورية مجرية.',
           price: '18.99',
           thumbnail: 'https://example.com/foundation.jpg',
           ownerId: insertedUsers[0].id,
@@ -201,8 +235,10 @@ async function seed() {
         },
         {
           title: 'Outliers',
+          titleAr: 'المتميزون',
           description:
             'Examines the factors that contribute to high levels of success.',
+          descriptionAr: 'يفحص العوامل التي تساهم في مستويات عالية من النجاح.',
           price: '17.99',
           thumbnail: 'https://example.com/outliers.jpg',
           ownerId: insertedUsers[1].id,
@@ -211,8 +247,10 @@ async function seed() {
         },
         {
           title: 'Sapiens',
+          titleAr: 'العاقل',
           description:
             'A brief history of humankind from the Stone Age to the modern age.',
+          descriptionAr: 'تاريخ موجز للبشرية من العصر الحجري إلى العصر الحديث.',
           price: '20.99',
           thumbnail: 'https://example.com/sapiens.jpg',
           ownerId: insertedUsers[2].id,
@@ -221,7 +259,9 @@ async function seed() {
         },
         {
           title: 'Becoming',
+          titleAr: 'الصيرورة',
           description: 'Memoir by former First Lady Michelle Obama.',
+          descriptionAr: 'مذكرات السيدة الأولى السابقة ميشيل أوباما.',
           price: '22.99',
           thumbnail: 'https://example.com/becoming.jpg',
           ownerId: insertedUsers[0].id,
@@ -230,8 +270,11 @@ async function seed() {
         },
         {
           title: 'Atomic Habits',
+          titleAr: 'العادات الذرية',
           description:
             'An easy and proven way to build good habits and break bad ones.',
+          descriptionAr:
+            'طريقة سهلة ومثبتة لبناء عادات جيدة وكسر العادات السيئة.',
           price: '16.99',
           thumbnail: 'https://example.com/atomic-habits.jpg',
           ownerId: insertedUsers[1].id,
@@ -240,7 +283,9 @@ async function seed() {
         },
         {
           title: 'Animal Farm',
+          titleAr: 'مزرعة الحيوان',
           description: 'Allegorical novella about Stalinism.',
+          descriptionAr: 'رواية رمزية عن الستالينية.',
           price: '11.99',
           thumbnail: 'https://example.com/animal-farm.jpg',
           ownerId: insertedUsers[2].id,
@@ -249,8 +294,10 @@ async function seed() {
         },
         {
           title: 'It',
+          titleAr: 'هو',
           description:
             'Horror novel about a shape-shifting creature that preys on children.',
+          descriptionAr: 'رواية رعب عن مخلوق متحول يفترس الأطفال.',
           price: '18.99',
           thumbnail: 'https://example.com/it.jpg',
           ownerId: insertedUsers[0].id,
@@ -259,7 +306,9 @@ async function seed() {
         },
         {
           title: 'The Great Gatsby',
+          titleAr: 'غاتسبي العظيم',
           description: 'A novel about the American Dream and the Jazz Age.',
+          descriptionAr: 'رواية عن الحلم الأمريكي وعصر الجاز.',
           price: '13.99',
           thumbnail: 'https://example.com/gatsby.jpg',
           ownerId: insertedUsers[0].id,
@@ -268,7 +317,9 @@ async function seed() {
         },
         {
           title: 'To Kill a Mockingbird',
+          titleAr: 'لقتل طائر الطنان',
           description: 'A novel about racial injustice in the Deep South.',
+          descriptionAr: 'رواية عن الظلم العنصري في الجنوب العميق.',
           price: '14.99',
           thumbnail: 'https://example.com/mockingbird.jpg',
           ownerId: insertedUsers[0].id,
@@ -277,7 +328,9 @@ async function seed() {
         },
         {
           title: 'The Hobbit',
+          titleAr: 'الهوبيت',
           description: 'A fantasy novel about Bilbo Baggins adventure.',
+          descriptionAr: 'رواية فانتازيا عن مغامرة بيلبو باجينز.',
           price: '16.99',
           thumbnail: 'https://example.com/hobbit.jpg',
           ownerId: insertedUsers[0].id,
@@ -286,7 +339,9 @@ async function seed() {
         },
         {
           title: 'Brave New World',
+          titleAr: 'عالم جديد شجاع',
           description: 'A dystopian novel set in a futuristic World State.',
+          descriptionAr: 'رواية ديستوبية تدور أحداثها في دولة عالمية مستقبلية.',
           price: '15.99',
           thumbnail: 'https://example.com/brave-new-world.jpg',
           ownerId: insertedUsers[0].id,
@@ -295,7 +350,9 @@ async function seed() {
         },
         {
           title: 'The Catcher in the Rye',
+          titleAr: 'الحارس في حقل الشوفان',
           description: 'A novel about teenage rebellion and alienation.',
+          descriptionAr: 'رواية عن تمرد المراهقين والاغتراب.',
           price: '12.99',
           thumbnail: 'https://example.com/catcher.jpg',
           ownerId: insertedUsers[0].id,
@@ -304,7 +361,9 @@ async function seed() {
         },
         {
           title: 'Lord of the Flies',
+          titleAr: 'ملك الذباب',
           description: 'A novel about a group of boys stranded on an island.',
+          descriptionAr: 'رواية عن مجموعة من الأولاد العالقين على جزيرة.',
           price: '13.99',
           thumbnail: 'https://example.com/flies.jpg',
           ownerId: insertedUsers[0].id,
@@ -313,8 +372,10 @@ async function seed() {
         },
         {
           title: 'Fahrenheit 451',
+          titleAr: 'فهرنهايت 451',
           description:
             'A dystopian novel about a future where books are banned.',
+          descriptionAr: 'رواية ديستوبية عن مستقبل حيث الكتب محظورة.',
           price: '14.99',
           thumbnail: 'https://example.com/fahrenheit.jpg',
           ownerId: insertedUsers[0].id,
@@ -323,8 +384,11 @@ async function seed() {
         },
         {
           title: 'The Chronicles of Narnia',
+          titleAr: 'سجلات نارنيا',
           description:
             'A series of fantasy novels set in the magical land of Narnia.',
+          descriptionAr:
+            'سلسلة روايات فانتازيا تدور أحداثها في أرض نارنيا السحرية.',
           price: '24.99',
           thumbnail: 'https://example.com/narnia.jpg',
           ownerId: insertedUsers[0].id,
@@ -333,8 +397,11 @@ async function seed() {
         },
         {
           title: 'Dune',
+          titleAr: 'الكثيب',
           description:
             'A science fiction novel set on the desert planet Arrakis.',
+          descriptionAr:
+            'رواية خيال علمي تدور أحداثها على كوكب أراكيس الصحراوي.',
           price: '19.99',
           thumbnail: 'https://example.com/dune.jpg',
           ownerId: insertedUsers[0].id,
@@ -343,8 +410,10 @@ async function seed() {
         },
         {
           title: 'The Martian',
+          titleAr: 'المريخي',
           description:
             'A science fiction novel about an astronaut stranded on Mars.',
+          descriptionAr: 'رواية خيال علمي عن رائد فضاء عالق على كوكب المريخ.',
           price: '17.99',
           thumbnail: 'https://example.com/martian.jpg',
           ownerId: insertedUsers[0].id,

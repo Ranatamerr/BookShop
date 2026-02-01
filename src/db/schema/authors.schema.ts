@@ -5,7 +5,11 @@ export const authors = pgTable('authors', {
 
   name: varchar('name', { length: 100 }).notNull().unique(),
 
+  nameAr: varchar('name_ar', { length: 100 }),
+
   bio: text('bio'),
+
+  bioAr: text('bio_ar'),
 
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()

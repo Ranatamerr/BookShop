@@ -87,7 +87,12 @@ export const updateBookSchema = z.object({
     .min(1, 'Title is required')
     .max(200, 'Title must not exceed 200 characters')
     .optional(),
+  titleAr: z
+    .string()
+    .max(200, 'Arabic title must not exceed 200 characters')
+    .optional(),
   description: z.string().optional(),
+  descriptionAr: z.string().optional(),
   price: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Price must be a valid decimal number')
@@ -114,12 +119,8 @@ export const updateBookSchema = z.object({
 
 export type UpdateBookInput = z.infer<typeof updateBookSchema>
 
-export const createBookSchema = z.object({
-  title: z
-    .string()
-    .min(1, 'Title is required')
-    .max(200, 'Title must not exceed 200 characters'),
-  description: z.string().optional(),
+// Shared fields for both languages
+const sharedBookFields = {
   price: z
     .string()
     .regex(/^\d+(\.\d{1,2})?$/, 'Price must be a valid decimal number')
@@ -131,6 +132,16 @@ export const createBookSchema = z.object({
     .url('Thumbnail must be a valid URL')
     .max(500, 'Thumbnail URL must not exceed 500 characters')
     .optional(),
+}
+
+// Schema for English book creation
+const createBookEnglishSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must not exceed 200 characters'),
+  description: z.string().optional(),
+  ...sharedBookFields,
   authorName: z
     .string()
     .min(1, 'Author name is required')
@@ -141,4 +152,43 @@ export const createBookSchema = z.object({
     .max(100, 'Category name must not exceed 100 characters'),
 })
 
-export type CreateBookInput = z.infer<typeof createBookSchema>
+// Schema for Arabic book creation
+const createBookArabicSchema = z.object({
+  titleAr: z
+    .string()
+    .min(1, 'Arabic title is required')
+    .max(200, 'Arabic title must not exceed 200 characters'),
+  descriptionAr: z.string().optional(),
+  ...sharedBookFields,
+  authorNameAr: z
+    .string()
+    .min(1, 'Arabic author name is required')
+    .max(100, 'Arabic author name must not exceed 100 characters'),
+  categoryNameAr: z
+    .string()
+    .min(1, 'Arabic category name is required')
+    .max(100, 'Arabic category name must not exceed 100 characters'),
+})
+
+// Union: either English OR Arabic
+export const createBookSchema = z.union([
+  createBookEnglishSchema,
+  createBookArabicSchema,
+])
+
+export type CreateBookEnglishInput = z.infer<typeof createBookEnglishSchema>
+export type CreateBookArabicInput = z.infer<typeof createBookArabicSchema>
+export type CreateBookInput = CreateBookEnglishInput | CreateBookArabicInput
+
+// Type guard functions
+export function isArabicBookInput(
+  input: CreateBookInput
+): input is CreateBookArabicInput {
+  return 'titleAr' in input
+}
+
+export function isEnglishBookInput(
+  input: CreateBookInput
+): input is CreateBookEnglishInput {
+  return 'title' in input
+}

@@ -5,6 +5,8 @@ export const categories = pgTable('categories', {
 
   name: varchar('name', { length: 100 }).notNull().unique(),
 
+  nameAr: varchar('name_ar', { length: 100 }),
+
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
