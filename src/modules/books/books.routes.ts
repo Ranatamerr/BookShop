@@ -10,6 +10,9 @@ booksRoutes.get('/', (c) => booksController.listBooks(c))
 // GET /books/my - Get my books with pagination (Protected)
 booksRoutes.get('/my', authMiddleware, (c) => booksController.getMyBooks(c))
 
+// POST /books - Create a new book (Protected)
+booksRoutes.post('/', authMiddleware, (c) => booksController.createBook(c))
+
 // GET /books/:id - Get book details by ID
 booksRoutes.get('/:id', (c) => booksController.getBookById(c))
 

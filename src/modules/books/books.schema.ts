@@ -83,3 +83,32 @@ export const updateBookSchema = z.object({
 })
 
 export type UpdateBookInput = z.infer<typeof updateBookSchema>
+
+export const createBookSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must not exceed 200 characters'),
+  description: z.string().optional(),
+  price: z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, 'Price must be a valid decimal number')
+    .refine((val) => parseFloat(val) > 0, {
+      message: 'Price must be greater than 0',
+    }),
+  thumbnail: z
+    .string()
+    .url('Thumbnail must be a valid URL')
+    .max(500, 'Thumbnail URL must not exceed 500 characters')
+    .optional(),
+  authorName: z
+    .string()
+    .min(1, 'Author name is required')
+    .max(100, 'Author name must not exceed 100 characters'),
+  categoryName: z
+    .string()
+    .min(1, 'Category name is required')
+    .max(100, 'Category name must not exceed 100 characters'),
+})
+
+export type CreateBookInput = z.infer<typeof createBookSchema>

@@ -6,7 +6,11 @@ import { users } from '../../db/schema/users.schema'
 import { bookTags } from '../../db/schema/book-tags.schema'
 import { tags } from '../../db/schema/tags.schema'
 import { eq, sql, inArray, ilike, asc, desc } from 'drizzle-orm'
-import type { ListBooksQuery, MyBooksQuery } from './books.schema'
+import type {
+  ListBooksQuery,
+  MyBooksQuery,
+  CreateBookInput,
+} from './books.schema'
 
 export class BooksService {
   async listBooks(query: ListBooksQuery) {
@@ -152,6 +156,86 @@ export class BooksService {
       .limit(1)
 
     return book || null
+  }
+
+  async createBook(userId: number, bookData: CreateBookInput) {
+    // Find or create author (case-insensitive)
+    let author = await db
+      .select()
+      .from(authors)
+      .where(sql`LOWER(${authors.name}) = LOWER(${bookData.authorName})`)
+      .limit(1)
+
+    if (author.length === 0) {
+      // Create new author
+      const [newAuthor] = await db
+        .insert(authors)
+        .values({
+          name: bookData.authorName,
+          bio: null,
+        })
+        .returning()
+      author = [newAuthor]
+    }
+
+    // Find or create category (case-insensitive)
+    let category = await db
+      .select()
+      .from(categories)
+      .where(sql`LOWER(${categories.name}) = LOWER(${bookData.categoryName})`)
+      .limit(1)
+
+    if (category.length === 0) {
+      // Create new category
+      const [newCategory] = await db
+        .insert(categories)
+        .values({
+          name: bookData.categoryName,
+        })
+        .returning()
+      category = [newCategory]
+    }
+
+    // Insert the new book
+    const [newBook] = await db
+      .insert(books)
+      .values({
+        title: bookData.title,
+        description: bookData.description || null,
+        price: bookData.price,
+        thumbnail: bookData.thumbnail || null,
+        ownerId: userId,
+        authorId: author[0].id,
+        categoryId: category[0].id,
+      })
+      .returning()
+
+    // Get the complete book details with author and category
+    const bookDetails = await db
+      .select({
+        id: books.id,
+        title: books.title,
+        description: books.description,
+        price: books.price,
+        thumbnail: books.thumbnail,
+        createdAt: books.createdAt,
+        updatedAt: books.updatedAt,
+        author: {
+          id: authors.id,
+          name: authors.name,
+        },
+        category: {
+          id: categories.id,
+          name: categories.name,
+        },
+      })
+      .from(books)
+      .leftJoin(authors, eq(books.authorId, authors.id))
+      .leftJoin(categories, eq(books.categoryId, categories.id))
+      .where(eq(books.id, newBook.id))
+      .limit(1)
+
+    return bookDetails[0]
   }
 
   async getMyBooks(userId: number, query: MyBooksQuery) {

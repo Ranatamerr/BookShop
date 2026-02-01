@@ -5,6 +5,7 @@ import {
   bookIdParamSchema,
   updateBookSchema,
   myBooksQuerySchema,
+  createBookSchema,
 } from './books.schema'
 import { ZodError } from 'zod'
 
@@ -153,6 +154,52 @@ export class BooksController {
         {
           success: false,
           message: 'Failed to retrieve your books',
+        },
+        500
+      )
+    }
+  }
+
+  async createBook(c: Context) {
+    try {
+      // Get user from auth middleware
+      const user = c.get('user')
+
+      // Get and validate request body
+      const body = await c.req.json()
+      const validatedData = createBookSchema.parse(body)
+
+      // Create the book
+      const newBook = await booksService.createBook(user.userId, validatedData)
+
+      return c.json(
+        {
+          success: true,
+          message: 'Book created successfully',
+          data: newBook,
+        },
+        201
+      )
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return c.json(
+          {
+            success: false,
+            message: 'Validation error',
+            errors: error.issues.map((err) => ({
+              field: err.path.join('.'),
+              message: err.message,
+            })),
+          },
+          400
+        )
+      }
+
+      console.error('Create book error:', error)
+      return c.json(
+        {
+          success: false,
+          message: 'Failed to create book',
         },
         500
       )
