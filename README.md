@@ -484,6 +484,12 @@ All error responses follow this structure:
 
 ## 🧪 Manual Testing with Postman
 
+### Postman Collection
+
+**📦 [View Postman Collection](https://ranatamerr-6525919.postman.co/workspace/ranatamerr's-Workspace~c0a634c6-a83c-46a7-8d16-e23d09974072/collection/48953531-f7ee20d9-ead3-4a1c-96b8-bf85fe32b89b)**
+
+The collection includes all API endpoints with example requests for both English and Arabic.
+
 ### Using Postman
 
 1. Import the API endpoints into Postman
