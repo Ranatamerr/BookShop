@@ -14,7 +14,7 @@ import type {
 
 export class BooksService {
   async listBooks(query: ListBooksQuery) {
-    const { page, limit, search, sortBy } = query
+    const { page, limit, search, sortBy, category, minPrice, maxPrice } = query
     const offset = (page - 1) * limit
 
     // Build where conditions
@@ -23,6 +23,19 @@ export class BooksService {
     // Add search filter if provided
     if (search) {
       whereConditions.push(ilike(books.title, `%${search}%`))
+    }
+
+    // Add category filter if provided (case-insensitive)
+    if (category) {
+      whereConditions.push(sql`LOWER(${categories.name}) = LOWER(${category})`)
+    }
+
+    // Add price range filters if provided
+    if (minPrice !== undefined) {
+      whereConditions.push(sql`${books.price}::numeric >= ${minPrice}`)
+    }
+    if (maxPrice !== undefined) {
+      whereConditions.push(sql`${books.price}::numeric <= ${maxPrice}`)
     }
 
     // Determine sort order
@@ -111,10 +124,22 @@ export class BooksService {
     if (search) {
       countWhereConditions.push(ilike(books.title, `%${search}%`))
     }
+    if (category) {
+      countWhereConditions.push(
+        sql`LOWER(${categories.name}) = LOWER(${category})`
+      )
+    }
+    if (minPrice !== undefined) {
+      countWhereConditions.push(sql`${books.price}::numeric >= ${minPrice}`)
+    }
+    if (maxPrice !== undefined) {
+      countWhereConditions.push(sql`${books.price}::numeric <= ${maxPrice}`)
+    }
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(books)
+      .leftJoin(categories, eq(books.categoryId, categories.id))
       .where(
         countWhereConditions.length > 0
           ? sql`${sql.join(countWhereConditions, sql` AND `)}`
@@ -239,7 +264,7 @@ export class BooksService {
   }
 
   async getMyBooks(userId: number, query: MyBooksQuery) {
-    const { page, limit, search, sortBy } = query
+    const { page, limit, search, sortBy, category, minPrice, maxPrice } = query
     const offset = (page - 1) * limit
 
     // Build where conditions
@@ -248,6 +273,19 @@ export class BooksService {
     // Add search filter if provided
     if (search) {
       whereConditions.push(ilike(books.title, `%${search}%`))
+    }
+
+    // Add category filter if provided (case-insensitive)
+    if (category) {
+      whereConditions.push(sql`LOWER(${categories.name}) = LOWER(${category})`)
+    }
+
+    // Add price range filters if provided
+    if (minPrice !== undefined) {
+      whereConditions.push(sql`${books.price}::numeric >= ${minPrice}`)
+    }
+    if (maxPrice !== undefined) {
+      whereConditions.push(sql`${books.price}::numeric <= ${maxPrice}`)
     }
 
     // Get books owned by the user
@@ -319,10 +357,22 @@ export class BooksService {
     if (search) {
       countWhereConditions.push(ilike(books.title, `%${search}%`))
     }
+    if (category) {
+      countWhereConditions.push(
+        sql`LOWER(${categories.name}) = LOWER(${category})`
+      )
+    }
+    if (minPrice !== undefined) {
+      countWhereConditions.push(sql`${books.price}::numeric >= ${minPrice}`)
+    }
+    if (maxPrice !== undefined) {
+      countWhereConditions.push(sql`${books.price}::numeric <= ${maxPrice}`)
+    }
 
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(books)
+      .leftJoin(categories, eq(books.categoryId, categories.id))
       .where(sql`${sql.join(countWhereConditions, sql` AND `)}`)
 
     const totalPages = Math.ceil(count / limit)

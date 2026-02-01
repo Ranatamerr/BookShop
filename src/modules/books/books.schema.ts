@@ -16,6 +16,21 @@ export const listBooksQuerySchema = z.object({
       message: 'Limit must be between 1 and 100',
     }),
   search: z.string().optional(),
+  category: z.string().optional(),
+  minPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .refine((val) => val === undefined || val >= 0, {
+      message: 'Minimum price must be greater than or equal to 0',
+    }),
+  maxPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .refine((val) => val === undefined || val >= 0, {
+      message: 'Maximum price must be greater than or equal to 0',
+    }),
   sortBy: z.enum(['title_asc', 'title_desc']).optional().default('title_asc'),
 })
 
@@ -37,6 +52,21 @@ export const myBooksQuerySchema = z.object({
       message: 'Limit must be between 1 and 100',
     }),
   search: z.string().optional(),
+  category: z.string().optional(),
+  minPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .refine((val) => val === undefined || val >= 0, {
+      message: 'Minimum price must be greater than or equal to 0',
+    }),
+  maxPrice: z
+    .string()
+    .optional()
+    .transform((val) => (val ? parseFloat(val) : undefined))
+    .refine((val) => val === undefined || val >= 0, {
+      message: 'Maximum price must be greater than or equal to 0',
+    }),
   sortBy: z.enum(['title_asc', 'title_desc']).optional().default('title_asc'),
 })
 
