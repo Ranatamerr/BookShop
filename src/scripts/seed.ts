@@ -257,6 +257,100 @@ async function seed() {
           authorId: insertedAuthors[3].id,
           categoryId: insertedCategories[0].id, // Fiction
         },
+        {
+          title: 'The Great Gatsby',
+          description: 'A novel about the American Dream and the Jazz Age.',
+          price: '13.99',
+          thumbnail: 'https://example.com/gatsby.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[1].id,
+          categoryId: insertedCategories[0].id, // Fiction
+        },
+        {
+          title: 'To Kill a Mockingbird',
+          description: 'A novel about racial injustice in the Deep South.',
+          price: '14.99',
+          thumbnail: 'https://example.com/mockingbird.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[2].id,
+          categoryId: insertedCategories[0].id, // Fiction
+        },
+        {
+          title: 'The Hobbit',
+          description: 'A fantasy novel about Bilbo Baggins adventure.',
+          price: '16.99',
+          thumbnail: 'https://example.com/hobbit.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[0].id,
+          categoryId: insertedCategories[9].id, // Fantasy
+        },
+        {
+          title: 'Brave New World',
+          description: 'A dystopian novel set in a futuristic World State.',
+          price: '15.99',
+          thumbnail: 'https://example.com/brave-new-world.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[1].id,
+          categoryId: insertedCategories[2].id, // Science Fiction
+        },
+        {
+          title: 'The Catcher in the Rye',
+          description: 'A novel about teenage rebellion and alienation.',
+          price: '12.99',
+          thumbnail: 'https://example.com/catcher.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[2].id,
+          categoryId: insertedCategories[0].id, // Fiction
+        },
+        {
+          title: 'Lord of the Flies',
+          description: 'A novel about a group of boys stranded on an island.',
+          price: '13.99',
+          thumbnail: 'https://example.com/flies.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[1].id,
+          categoryId: insertedCategories[0].id, // Fiction
+        },
+        {
+          title: 'Fahrenheit 451',
+          description:
+            'A dystopian novel about a future where books are banned.',
+          price: '14.99',
+          thumbnail: 'https://example.com/fahrenheit.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[1].id,
+          categoryId: insertedCategories[2].id, // Science Fiction
+        },
+        {
+          title: 'The Chronicles of Narnia',
+          description:
+            'A series of fantasy novels set in the magical land of Narnia.',
+          price: '24.99',
+          thumbnail: 'https://example.com/narnia.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[0].id,
+          categoryId: insertedCategories[9].id, // Fantasy
+        },
+        {
+          title: 'Dune',
+          description:
+            'A science fiction novel set on the desert planet Arrakis.',
+          price: '19.99',
+          thumbnail: 'https://example.com/dune.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[5].id,
+          categoryId: insertedCategories[2].id, // Science Fiction
+        },
+        {
+          title: 'The Martian',
+          description:
+            'A science fiction novel about an astronaut stranded on Mars.',
+          price: '17.99',
+          thumbnail: 'https://example.com/martian.jpg',
+          ownerId: insertedUsers[0].id,
+          authorId: insertedAuthors[5].id,
+          categoryId: insertedCategories[2].id, // Science Fiction
+        },
       ])
       .returning()
     console.log(`✅ Created ${insertedBooks.length} books`)

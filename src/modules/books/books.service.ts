@@ -5,13 +5,25 @@ import { categories } from '../../db/schema/categories.schema'
 import { users } from '../../db/schema/users.schema'
 import { bookTags } from '../../db/schema/book-tags.schema'
 import { tags } from '../../db/schema/tags.schema'
-import { eq, sql, inArray } from 'drizzle-orm'
-import type { ListBooksQuery } from './books.schema'
+import { eq, sql, inArray, ilike, asc, desc } from 'drizzle-orm'
+import type { ListBooksQuery, MyBooksQuery } from './books.schema'
 
 export class BooksService {
   async listBooks(query: ListBooksQuery) {
-    const { page, limit } = query
+    const { page, limit, search, sortBy } = query
     const offset = (page - 1) * limit
+
+    // Build where conditions
+    const whereConditions = []
+
+    // Add search filter if provided
+    if (search) {
+      whereConditions.push(ilike(books.title, `%${search}%`))
+    }
+
+    // Determine sort order
+    const orderByClause =
+      sortBy === 'title_desc' ? desc(books.title) : asc(books.title)
 
     // Get books with related data
     const booksList = await db
@@ -42,9 +54,14 @@ export class BooksService {
       .leftJoin(authors, eq(books.authorId, authors.id))
       .leftJoin(categories, eq(books.categoryId, categories.id))
       .leftJoin(users, eq(books.ownerId, users.id))
+      .where(
+        whereConditions.length > 0
+          ? sql`${sql.join(whereConditions, sql` AND `)}`
+          : undefined
+      )
+      .orderBy(orderByClause)
       .limit(limit)
       .offset(offset)
-      .orderBy(books.createdAt)
 
     // Get tags for each book
     const bookIds = booksList.map((book) => book.id)
@@ -86,9 +103,19 @@ export class BooksService {
     }))
 
     // Get total count for pagination
+    const countWhereConditions = []
+    if (search) {
+      countWhereConditions.push(ilike(books.title, `%${search}%`))
+    }
+
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(books)
+      .where(
+        countWhereConditions.length > 0
+          ? sql`${sql.join(countWhereConditions, sql` AND `)}`
+          : undefined
+      )
 
     const totalPages = Math.ceil(count / limit)
 
@@ -127,9 +154,17 @@ export class BooksService {
     return book || null
   }
 
-  async getMyBooks(userId: number, query: ListBooksQuery) {
-    const { page, limit } = query
+  async getMyBooks(userId: number, query: MyBooksQuery) {
+    const { page, limit, search, sortBy } = query
     const offset = (page - 1) * limit
+
+    // Build where conditions
+    const whereConditions = [eq(books.ownerId, userId)]
+
+    // Add search filter if provided
+    if (search) {
+      whereConditions.push(ilike(books.title, `%${search}%`))
+    }
 
     // Get books owned by the user
     const booksList = await db
@@ -152,8 +187,8 @@ export class BooksService {
       .from(books)
       .leftJoin(authors, eq(books.authorId, authors.id))
       .leftJoin(categories, eq(books.categoryId, categories.id))
-      .where(eq(books.ownerId, userId))
-      .orderBy(books.id)
+      .where(sql`${sql.join(whereConditions, sql` AND `)}`)
+      .orderBy(sortBy === 'title_desc' ? desc(books.title) : asc(books.title))
       .limit(limit)
       .offset(offset)
 
@@ -195,11 +230,16 @@ export class BooksService {
       tags: tagsByBook[book.id] || [],
     }))
 
-    // Get total count for pagination (only user's books)
+    // Get total count for pagination (only user's books, with search filter)
+    const countWhereConditions = [eq(books.ownerId, userId)]
+    if (search) {
+      countWhereConditions.push(ilike(books.title, `%${search}%`))
+    }
+
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(books)
-      .where(eq(books.ownerId, userId))
+      .where(sql`${sql.join(countWhereConditions, sql` AND `)}`)
 
     const totalPages = Math.ceil(count / limit)
 

@@ -4,6 +4,7 @@ import {
   listBooksQuerySchema,
   bookIdParamSchema,
   updateBookSchema,
+  myBooksQuerySchema,
 } from './books.schema'
 import { ZodError } from 'zod'
 
@@ -15,10 +16,16 @@ export class BooksController {
 
       const result = await booksService.listBooks(validatedQuery)
 
+      // Check if no books found with search term
+      const message =
+        result.data.length === 0 && validatedQuery.search
+          ? `No books found matching "${validatedQuery.search}"`
+          : 'Books retrieved successfully'
+
       return c.json(
         {
           success: true,
-          message: 'Books retrieved successfully',
+          message,
           ...result,
         },
         200
@@ -107,15 +114,21 @@ export class BooksController {
 
       // Get and validate query params
       const query = c.req.query()
-      const validatedQuery = listBooksQuerySchema.parse(query)
+      const validatedQuery = myBooksQuerySchema.parse(query)
 
       // Get user's books
       const result = await booksService.getMyBooks(user.userId, validatedQuery)
 
+      // Check if no books found with search term
+      const message =
+        result.data.length === 0 && validatedQuery.search
+          ? `No books found matching "${validatedQuery.search}"`
+          : 'Your books retrieved successfully'
+
       return c.json(
         {
           success: true,
-          message: 'Your books retrieved successfully',
+          message,
           ...result,
         },
         200
